@@ -1,128 +1,148 @@
 const socket = io();
 
-const promptElement = document.getElementById('prompt');
+const promptElement = document.getElementById("prompt");
+const roomIdDisplay = document.getElementById("room-id-display");
+const roomInput = document.getElementById("room-id");
 
-const roomIdDisplay = document.getElementById('room-id-display');
-
+// Get roomId from URL and auto-fill
 const urlParams = new URLSearchParams(window.location.search);
-const roomId = urlParams.get('roomId');
-if (roomId) {
-  roomIdDisplay.innerText = `${roomId}`;
+const roomIdFromURL = urlParams.get("roomId");
+if (roomIdFromURL) {
+  roomIdDisplay.innerText = roomIdFromURL;
+  roomInput.value = roomIdFromURL;
+  socket.emit("joinRoom", roomIdFromURL);
 }
 
-if (roomId) {
-  socket.emit('joinRoom', roomId);
-  // Disable the join room button to prevent multiple joins
-}
-
-// Function to update the prompt's content and style
+// Function to update prompt
 function updatePrompt(message, type) {
   promptElement.textContent = message;
   promptElement.className = `prompt ${type}`;
   setTimeout(() => {
-    promptElement.textContent = '';
-    promptElement.className = 'prompt';
-  }, 3000); 
+    promptElement.textContent = "";
+    promptElement.className = "prompt";
+  }, 3000);
 }
 
-    let username;
-    socket.on('requestUsername', (roomId) => {
-      while(!username) {
-        username = prompt('Please enter your name:');
-        if (!username) {
-          alert('Username cannot be empty. Please try again.');
-        }
-      }
-      roomIdDisplay.innerText = roomId;
-      socket.emit('submitUsername', username);
-    });
+// Request username from user
+let username;
+socket.on("requestUsername", (roomId) => {
+  while (!username) {
+    username = prompt("Please enter your name:");
+    if (!username) alert("Username cannot be empty. Please try again.");
+  }
+  roomIdDisplay.innerText = roomId;
+  socket.emit("submitUsername", username);
+});
 
-    // Join room
-    document.getElementById('join-room').addEventListener('click', () => {
-      const roomId = document.getElementById('room-id').value;
-      socket.emit('joinRoom', roomId);
-    });
+// Join room
+document.getElementById("join-room").addEventListener("click", () => {
+  const roomId = roomInput.value.trim();
+  if (roomId) {
+    roomIdDisplay.innerText = roomId;
+    socket.emit("joinRoom", roomId);
+  }
+});
 
-    // Leave room
-    document.getElementById('leave-room').addEventListener('click', () => {
-      const roomId = document.getElementById('room-id').value;
-      socket.emit('leaveRoom', roomId);
-      // Clear the chat log
-      document.getElementById('chat-log').innerHTML = '';
-    });
+// Leave room
+document.getElementById("leave-room").addEventListener("click", () => {
+  const roomId = roomInput.value.trim();
+  if (roomId) {
+    socket.emit("leaveRoom", roomId);
+    document.getElementById("chat-log").innerHTML = "";
+  }
+});
 
-    // Send message
-    document.getElementById('send-message').addEventListener('click', () => {
-      const message = document.getElementById('message-input').value;
-      const roomId = document.getElementById('room-id').value;
-      socket.emit('sendMessage', roomId, message, username);
-      document.getElementById('message-input').value = '';
-    });
+// Send message
+document.getElementById("send-message").addEventListener("click", () => {
+  const message = document.getElementById("message-input").value.trim();
+  const roomId = roomInput.value.trim();
+  if (message && roomId && username) {
+    socket.emit("sendMessage", roomId, message, username);
+    document.getElementById("message-input").value = "";
+  }
+});
 
-    // Display new messages
-    socket.on('newMessage', (message, senderUsername) => {
-      const chatLog = document.getElementById('chat-log');
-      const messageElement = document.createElement('p');
-      messageElement.innerText = `${senderUsername}: ${message}`;
-      chatLog.appendChild(messageElement);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    });
+// Display new message
+socket.on("newMessage", (message, senderUsername) => {
+  const chatLog = document.getElementById("chat-log");
+  const messageElement = document.createElement("p");
+  messageElement.innerText = `${senderUsername}: ${message}`;
+  chatLog.appendChild(messageElement);
+  chatLog.scrollTop = chatLog.scrollHeight;
+});
 
-    // Listen for new user joined event
-    socket.on('newUserJoined', (message) => {
-      console.log(message);
-      updatePrompt(message, 'join');
-      setTimeout(() => {
-        promptElement.innerText = '';
-      }, 3000);
-    });
+// User joined
+socket.on("newUserJoined", (message) => {
+  updatePrompt(message, "join");
+});
 
-    // Listen for user left event
-    socket.on('userLeft', (message) => {
-      console.log(message);
-      updatePrompt(message, 'leave');
-      // Hide the prompt after a few seconds
-      setTimeout(() => {
-        promptElement.innerText = '';
-      }, 3000);
-    });
+// User left
+socket.on("userLeft", (message) => {
+  updatePrompt(message, "leave");
+});
 
-    socket.on('onlineUsers', (users) => {
-      const onlineUsersElement = document.getElementById('online-users');
-      onlineUsersElement.innerHTML = '';
-      users.forEach((user) => {
-        const userElement = document.createElement('p');
-        const onlineIcon = document.createElement('i');
-        onlineIcon.className = 'fas fa-circle text-green-500'; // Use a green circle icon
-        userElement.appendChild(onlineIcon);
-        userElement.appendChild(document.createTextNode(` ${user.username}`));
-        onlineUsersElement.appendChild(userElement);
-      });
-    });
+// Show online users
+socket.on("onlineUsers", (users) => {
+  const onlineUsersElement = document.getElementById("online-users");
+  onlineUsersElement.innerHTML = "";
+  users.forEach((user) => {
+    const userElement = document.createElement("p");
+    const onlineIcon = document.createElement("i");
+    onlineIcon.className = "fas fa-circle text-green-500 mr-2";
+    userElement.appendChild(onlineIcon);
+    userElement.appendChild(document.createTextNode(user.username));
+    onlineUsersElement.appendChild(userElement);
+  });
+});
 
-    const themeToggle = document.getElementById('theme-toggle');
-      let isDarkTheme = false;
+const shareRoomButton = document.getElementById("share-room");
 
-      themeToggle.addEventListener('click', () => {
-        isDarkTheme = !isDarkTheme;
-        if (isDarkTheme) {
-          document.body.classList.add('dark-theme');
-          themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        } else {
-          document.body.classList.remove('dark-theme');
-          themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        }
-      });
-      const shareRoomButton = document.getElementById('share-room');
-      shareRoomButton.addEventListener('click', () => {
-        const roomId = roomIdDisplay.innerText;
-        console.log(roomId)
-        const roomUrl = `${window.location.origin}?roomId=${roomId}`;
-        const shareLink = document.createElement('textarea');
-        shareLink.value = roomUrl;
-        document.body.appendChild(shareLink);
-        shareLink.select();
-        document.execCommand('copy');
-        document.body.removeChild(shareLink);
-        alert(`Room link copied to clipboard: ${roomUrl}`);
-      });
+shareRoomButton.addEventListener("click", async () => {
+  const roomId = document.getElementById("room-id-display").innerText.trim();
+
+  if (!roomId) {
+    alert("Please join a room first.");
+    return;
+  }
+
+  const roomUrl = `${window.location.origin}?roomId=${encodeURIComponent(
+    roomId
+  )}`;
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(roomUrl);
+      alert("Room link copied to clipboard!");
+    } else {
+      fallbackCopyTextToClipboard(roomUrl);
+    }
+  } catch (err) {
+    console.error("Clipboard write failed:", err);
+    fallbackCopyTextToClipboard(roomUrl);
+  }
+});
+
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.top = "-1000px";
+  textArea.style.left = "-1000px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+
+  try {
+    const successful = document.execCommand("copy");
+    if (successful) {
+      alert("Room link copied to clipboard!");
+    } else {
+      alert("Failed to copy. Please copy manually:\n" + text);
+    }
+  } catch (err) {
+    console.error("Fallback copy failed:", err);
+    alert("Failed to copy. Please copy manually:\n" + text);
+  }
+
+  document.body.removeChild(textArea);
+}
