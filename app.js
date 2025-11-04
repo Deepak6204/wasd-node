@@ -81,6 +81,54 @@ io.on("connection", (socket) => {
       socket.emit("onlineUsers", []);
     }
   });
+
+  // Handle file transfer start
+  socket.on("fileTransferStart", (data) => {
+    const { fileId, fileName, fileSize, fileType, totalChunks, roomId } = data;
+    
+    // Broadcast to all users in the room except sender
+    socket.broadcast.to(roomId).emit("fileTransferStart", {
+      fileId,
+      fileName,
+      fileSize,
+      fileType,
+      totalChunks,
+      sender: socket.username || "Anonymous"
+    });
+  });
+
+  // Handle file chunk transfer
+  socket.on("fileChunk", (data) => {
+    const { fileId, chunkIndex, chunk, roomId } = data;
+    
+    // Relay chunk to all users in the room except sender
+    socket.broadcast.to(roomId).emit("fileChunk", {
+      fileId,
+      chunkIndex,
+      chunk
+    });
+  });
+
+  // Handle file transfer completion
+  socket.on("fileTransferComplete", (data) => {
+    const { fileId, roomId } = data;
+    
+    // Notify all users in the room except sender
+    socket.broadcast.to(roomId).emit("fileTransferComplete", {
+      fileId
+    });
+  });
+
+  // Handle file transfer errors
+  socket.on("fileTransferError", (data) => {
+    const { fileId, error, roomId } = data;
+    
+    // Notify all users in the room
+    io.to(roomId).emit("fileTransferError", {
+      fileId,
+      error
+    });
+  });
 });
 
 server.listen(3000, () => {
