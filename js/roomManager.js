@@ -227,8 +227,17 @@ class RoomManager {
 
   /**
    * Update online users list
+   * Note: This is overridden by PrivateConnectionManager to add connect buttons
    */
   updateOnlineUsers(users) {
+    // Check if private connection manager is available
+    if (window.privateConnectionManager) {
+      // Let the private connection manager handle this with connect buttons
+      window.privateConnectionManager.updateOnlineUsersWithConnectButtons(users);
+      return;
+    }
+
+    // Fallback to simple display if no private connection manager
     const onlineUsersElement = document.getElementById('online-users');
     
     if (users.length === 0) {

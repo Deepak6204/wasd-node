@@ -6,7 +6,7 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
   min-height: 100vh;
 }
 
@@ -39,11 +39,11 @@ body {
 }
 
 .prompt.join {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
 .prompt.leave {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
 }
 
 /* Chat Messages */
@@ -74,8 +74,8 @@ body {
 .message-bubble {
   padding: 10px 14px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #334155 0%, #475569 100%);
-  border-left: 3px solid #06b6d4;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-left: 3px solid #3b82f6;
   margin-bottom: 8px;
   animation: fadeIn 0.3s ease-out;
   word-wrap: break-word;
@@ -94,7 +94,7 @@ body {
 
 .message-username {
   font-weight: 600;
-  color: #06b6d4;
+  color: #60a5fa;
   margin-bottom: 4px;
   font-size: 13px;
 }
@@ -134,7 +134,7 @@ body {
 .user-item {
   padding: 10px 12px;
   border-radius: 8px;
-  background: #334155;
+  background: #1e293b;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -143,18 +143,18 @@ body {
 }
 
 .user-item:hover {
-  background: #3f4b5e;
+  background: #334155;
   transform: translateX(4px);
 }
 
 .online-indicator {
   width: 8px;
   height: 8px;
-  background: #10b981;
+  background: #3b82f6;
   border-radius: 50%;
   margin-right: 10px;
   animation: pulse 2s infinite;
-  box-shadow: 0 0 8px #10b981;
+  box-shadow: 0 0 8px #3b82f6;
 }
 
 @keyframes pulse {
@@ -197,7 +197,7 @@ input:focus {
 
 /* Header Gradient */
 .header-gradient {
-  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -209,12 +209,12 @@ input:focus {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: linear-gradient(135deg, #334155 0%, #475569 100%);
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: #06b6d4;
-  border: 1px solid #475569;
+  color: #60a5fa;
+  border: 1px solid #334155;
 }
 
 /* Empty State */
@@ -227,6 +227,18 @@ input:focus {
 .empty-state i {
   font-size: 48px;
   margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-state-small {
+  text-align: center;
+  padding: 20px 10px;
+  color: #64748b;
+}
+
+.empty-state-small i {
+  font-size: 24px;
+  margin-bottom: 6px;
   opacity: 0.5;
 }
 
@@ -251,12 +263,12 @@ input:focus {
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: 16px;
   max-width: 450px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -290,7 +302,7 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #334155;
+  background: #1e293b;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
@@ -332,8 +344,8 @@ input:focus {
 .file-transfer-message {
   padding: 10px 14px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #334155 0%, #475569 100%);
-  border-left: 3px solid #a855f7;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-left: 3px solid #3b82f6;
   margin-bottom: 8px;
   animation: fadeIn 0.3s ease-out;
 }
@@ -352,13 +364,13 @@ input:focus {
 }
 
 .file-icon {
-  color: #a855f7;
+  color: #60a5fa;
   font-size: 16px;
 }
 
 .file-transfer-name {
   font-weight: 600;
-  color: #a855f7;
+  color: #60a5fa;
   font-size: 13px;
 }
 
@@ -369,7 +381,7 @@ input:focus {
 
 .progress-bar {
   height: 4px;
-  background: #1e293b;
+  background: #0f172a;
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -377,7 +389,7 @@ input:focus {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #a855f7 0%, #ec4899 100%);
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
   transition: width 0.3s ease;
   border-radius: 2px;
 }
@@ -390,7 +402,7 @@ input:focus {
 
 .download-btn {
   flex: 1;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   padding: 6px 12px;
   border-radius: 6px;
@@ -407,13 +419,120 @@ input:focus {
 
 .download-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .file-transfer-status {
   font-size: 11px;
   color: #94a3b8;
   text-align: center;
+}
+
+/* User Item with Connect Button */
+.user-item-with-action {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #1e293b;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.user-item-with-action:hover {
+  background: #334155;
+}
+
+.user-info-section {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.connect-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.connect-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.connect-btn.connected {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.connect-btn.pending {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  cursor: not-allowed;
+}
+
+.disconnect-btn {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.disconnect-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+}
+
+/* Connected Peer Item */
+.connected-peer-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-left: 3px solid #3b82f6;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.peer-name {
+  font-weight: 600;
+  color: #60a5fa;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* File Mode Toggle Buttons */
+#public-mode-btn.active,
+#private-mode-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+#public-mode-btn:not(.active),
+#private-mode-btn:not(.active) {
+  background: #1e293b;
+  color: #64748b;
 }
 
 /* Responsive adjustments */

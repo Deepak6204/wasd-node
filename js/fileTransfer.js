@@ -140,8 +140,19 @@ class FileTransfer {
       return;
     }
 
+    // Check if private mode is active
+    const isPrivateMode = window.privateConnectionManager?.isPrivateModeActive();
+    const selectedPeerId = window.privateConnectionManager?.getSelectedPeerId();
+
+    if (isPrivateMode) {
+      if (!selectedPeerId) {
+        window.UIManager?.showPrompt('Please select a connected peer', 'leave');
+        return;
+      }
+    }
+
     for (const file of this.selectedFiles) {
-      await this.sendFile(file, roomId);
+      await this.sendFile(file, roomId, isPrivateMode, selectedPeerId);
     }
 
     // Clear selection after sending
@@ -154,7 +165,7 @@ class FileTransfer {
   /**
    * Send a single file in chunks
    */
-  async sendFile(file, roomId) {
+  async sendFile(file, roomId, isPrivateMode = false, targetPeerId = null) {
     const fileId = this.generateFileId();
     const totalChunks = Math.ceil(file.size / this.CHUNK_SIZE);
 
@@ -165,7 +176,9 @@ class FileTransfer {
       fileSize: file.size,
       fileType: file.type,
       totalChunks,
-      roomId
+      roomId,
+      isPrivate: isPrivateMode,
+      targetPeerId: targetPeerId
     });
 
     // Create transfer tracking
@@ -192,7 +205,9 @@ class FileTransfer {
         fileId,
         chunkIndex,
         chunk: base64Chunk,
-        roomId
+        roomId,
+        isPrivate: isPrivateMode,
+        targetPeerId: targetPeerId
       });
 
       offset += this.CHUNK_SIZE;
@@ -209,7 +224,9 @@ class FileTransfer {
     // Notify completion
     this.socket.emit('fileTransferComplete', {
       fileId,
-      roomId
+      roomId,
+      isPrivate: isPrivateMode,
+      targetPeerId: targetPeerId
     });
   }
 
@@ -219,12 +236,15 @@ class FileTransfer {
   handleFileTransferStart(data) {
     const { fileId, fileName, fileSize, totalChunks, sender } = data;
 
+    console.log(`Starting file transfer: ${fileName} (${this.formatFileSize(fileSize)}) from ${sender}`);
+    console.log(`Expected ${totalChunks} chunks`);
+
     this.receivedChunks.set(fileId, {
       fileName,
       fileSize,
-      fileType: data.fileType,
+      fileType: data.fileType || 'application/octet-stream',
       totalChunks,
-      chunks: [],
+      chunks: new Array(totalChunks), // Pre-allocate array with correct size
       receivedCount: 0,
       sender
     });
@@ -239,13 +259,27 @@ class FileTransfer {
     const { fileId, chunkIndex, chunk } = data;
     const transfer = this.receivedChunks.get(fileId);
 
-    if (!transfer) return;
+    if (!transfer) {
+      console.warn('Received chunk for unknown transfer:', fileId);
+      return;
+    }
 
+    // Store chunk at the correct index
     transfer.chunks[chunkIndex] = chunk;
     transfer.receivedCount++;
 
     const progress = (transfer.receivedCount / transfer.totalChunks) * 100;
     this.updateTransferProgress(fileId, progress, 'receiving');
+
+    // Log progress
+    if (transfer.receivedCount % 10 === 0 || transfer.receivedCount === transfer.totalChunks) {
+      console.log(`Receiving ${transfer.fileName}: ${transfer.receivedCount}/${transfer.totalChunks} chunks (${Math.round(progress)}%)`);
+    }
+
+    // When all chunks received, verify completion
+    if (transfer.receivedCount === transfer.totalChunks) {
+      console.log('All chunks received, waiting for completion signal...');
+    }
   }
 
   /**
@@ -255,18 +289,50 @@ class FileTransfer {
     const { fileId } = data;
     const transfer = this.receivedChunks.get(fileId);
 
-    if (!transfer) return;
+    if (!transfer) {
+      console.error('Transfer not found for fileId:', fileId);
+      return;
+    }
 
-    // Reconstruct file from chunks
-    const base64Data = transfer.chunks.join('');
-    const binaryData = this.base64ToArrayBuffer(base64Data);
-    const blob = new Blob([binaryData], { type: transfer.fileType });
+    // Verify all chunks are received
+    if (transfer.receivedCount !== transfer.totalChunks) {
+      console.warn(`Incomplete transfer: ${transfer.receivedCount}/${transfer.totalChunks} chunks`);
+      window.UIManager?.showPrompt('File transfer incomplete. Try again.', 'leave');
+      return;
+    }
 
-    // Update UI to show download button
-    this.displayDownloadButton(fileId, transfer.fileName, blob);
+    try {
+      // Reconstruct file from chunks (filter out undefined/null values)
+      const base64Data = transfer.chunks.filter(chunk => chunk != null).join('');
+      
+      if (!base64Data) {
+        throw new Error('No data received');
+      }
 
-    // Clean up
-    this.receivedChunks.delete(fileId);
+      const binaryData = this.base64ToArrayBuffer(base64Data);
+      const blob = new Blob([binaryData], { type: transfer.fileType || 'application/octet-stream' });
+
+      // Update UI to show download button
+      this.displayDownloadButton(fileId, transfer.fileName, blob);
+
+      // Clean up
+      this.receivedChunks.delete(fileId);
+      
+      console.log('File transfer completed successfully:', transfer.fileName);
+    } catch (error) {
+      console.error('Error reconstructing file:', error);
+      window.UIManager?.showPrompt('Failed to reconstruct file', 'leave');
+      
+      // Show error in UI
+      const transferElement = document.getElementById(`transfer-${fileId}`);
+      if (transferElement) {
+        const statusText = transferElement.querySelector('.file-transfer-status');
+        if (statusText) {
+          statusText.textContent = 'Error: Failed to reconstruct file';
+          statusText.style.color = '#ef4444';
+        }
+      }
+    }
   }
 
   /**

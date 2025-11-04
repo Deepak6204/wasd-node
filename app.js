@@ -82,41 +82,102 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Handle connection request
+  socket.on("sendConnectionRequest", (data) => {
+    const { peerId, requesterUsername } = data;
+    
+    io.to(peerId).emit("connectionRequest", {
+      requesterId: socket.id,
+      requesterUsername: requesterUsername
+    });
+  });
+
+  // Handle connection acceptance
+  socket.on("acceptConnection", (data) => {
+    const { peerId } = data;
+    
+    io.to(peerId).emit("connectionAccepted", {
+      peerId: socket.id,
+      peerUsername: socket.username
+    });
+  });
+
+  // Handle connection rejection
+  socket.on("rejectConnection", (data) => {
+    const { peerId } = data;
+    
+    io.to(peerId).emit("connectionRejected", {
+      peerId: socket.id,
+      peerUsername: socket.username
+    });
+  });
+
+  // Handle peer disconnection
+  socket.on("disconnectPeer", (data) => {
+    const { peerId } = data;
+    
+    io.to(peerId).emit("peerDisconnected", {
+      peerId: socket.id,
+      peerUsername: socket.username
+    });
+  });
+
   // Handle file transfer start
   socket.on("fileTransferStart", (data) => {
-    const { fileId, fileName, fileSize, fileType, totalChunks, roomId } = data;
+    const { fileId, fileName, fileSize, fileType, totalChunks, roomId, isPrivate, targetPeerId } = data;
     
-    // Broadcast to all users in the room except sender
-    socket.broadcast.to(roomId).emit("fileTransferStart", {
+    const transferData = {
       fileId,
       fileName,
       fileSize,
       fileType,
       totalChunks,
       sender: socket.username || "Anonymous"
-    });
+    };
+
+    if (isPrivate && targetPeerId) {
+      // Send only to specific peer
+      io.to(targetPeerId).emit("fileTransferStart", transferData);
+    } else {
+      // Broadcast to all users in the room except sender
+      socket.broadcast.to(roomId).emit("fileTransferStart", transferData);
+    }
   });
 
   // Handle file chunk transfer
   socket.on("fileChunk", (data) => {
-    const { fileId, chunkIndex, chunk, roomId } = data;
+    const { fileId, chunkIndex, chunk, roomId, isPrivate, targetPeerId } = data;
     
-    // Relay chunk to all users in the room except sender
-    socket.broadcast.to(roomId).emit("fileChunk", {
+    const chunkData = {
       fileId,
       chunkIndex,
       chunk
-    });
+    };
+
+    if (isPrivate && targetPeerId) {
+      // Send only to specific peer
+      io.to(targetPeerId).emit("fileChunk", chunkData);
+    } else {
+      // Relay chunk to all users in the room except sender
+      socket.broadcast.to(roomId).emit("fileChunk", chunkData);
+    }
   });
 
   // Handle file transfer completion
   socket.on("fileTransferComplete", (data) => {
-    const { fileId, roomId } = data;
+    const { fileId, roomId, isPrivate, targetPeerId } = data;
     
-    // Notify all users in the room except sender
-    socket.broadcast.to(roomId).emit("fileTransferComplete", {
+    const completeData = {
       fileId
-    });
+    };
+
+    if (isPrivate && targetPeerId) {
+      // Notify only specific peer
+      io.to(targetPeerId).emit("fileTransferComplete", completeData);
+    } else {
+      // Notify all users in the room except sender
+      socket.broadcast.to(roomId).emit("fileTransferComplete", completeData);
+    }
   });
 
   // Handle file transfer errors
